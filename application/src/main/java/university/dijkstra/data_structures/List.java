@@ -5,6 +5,22 @@ public class List<T> {
   private Node<T> head;
   private Node<T> tail;
 
+  public Node<T> getHead() {
+    return head;
+  }
+
+  public void setHead(Node<T> head) {
+    this.head = head;
+  }
+
+  public boolean isEmpty() {
+    return size == 0;
+  }
+
+  public Node<T> getTail() {
+    return tail;
+  }
+
   public List() {
     this.size = 0;
     this.head = null;
@@ -20,7 +36,7 @@ public class List<T> {
       head = newNode;
       tail = newNode;
     } else {
-      tail.next = newNode;
+      tail.setNext(newNode);
       tail = newNode;
     }
     size++;
@@ -47,13 +63,29 @@ public class List<T> {
     }
   }
 
-  class Node<E> {
+  public class Node<E> {
     E data;
     Node<E> next;
 
     Node(E data) {
       this.data = data;
       this.next = null;
+    }
+
+    public E getData() {
+      return data;
+    }
+
+    public void setData(E data) {
+      this.data = data;
+    }
+
+    public Node<E> getNext() {
+      return next;
+    }
+
+    public void setNext(Node<E> next) {
+      this.next = next;
     }
   }
 }
