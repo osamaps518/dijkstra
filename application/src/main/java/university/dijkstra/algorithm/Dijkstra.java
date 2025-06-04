@@ -1,5 +1,7 @@
 package university.dijkstra.algorithm;
 
+import java.util.Arrays;
+
 import university.dijkstra.data_structures.List;
 import university.dijkstra.data_structures.MinHeap;
 import university.dijkstra.model.*;
@@ -7,8 +9,9 @@ import university.dijkstra.model.*;
 public class Dijkstra {
   private int[] previous; // To reconstruct the path
   private double[] distances; // To store the shortest distances from the source
-  // Simple node class for the priority queue
+  private List<Integer> touchedVertices;
 
+  // Simple node class for the priority queue
   static class QueueNode implements Comparable<QueueNode> {
     int vertexId;
     double distance;
@@ -24,13 +27,24 @@ public class Dijkstra {
     }
   }
 
+  public Dijkstra(int numVertices) {
+    distances = new double[numVertices];
+    previous = new int[numVertices];
+    touchedVertices = new List<>();
+
+    // Initial setup - only done once
+    Arrays.fill(distances, Double.MAX_VALUE);
+    Arrays.fill(previous, -1);
+  }
+
   public void findShortestPath(Vertex[] graph, Vertex source, Vertex destination) {
     MinHeap<QueueNode> pq = new MinHeap<QueueNode>();
-    distances = new double[graph.length];
-    previous = new int[graph.length];
 
-    initializeDistancesAndPrevious(distances, previous);
+    // Reset ONLY touched vertices from previous query
+    resetTouchedVertices();
+
     distances[source.getId()] = 0;
+    touchedVertices.add(source.getId());
     pq.insert(new QueueNode(source.getId(), 0));
 
     while (!pq.isEmpty()) {
@@ -40,7 +54,7 @@ public class Dijkstra {
         continue; // Skip if we already found a better path
       }
       if (current.vertexId == destination.getId()) {
-        break;
+        break; // early termination
       }
 
       List.Node<Edge> node = edges.getHead();
@@ -52,6 +66,7 @@ public class Dijkstra {
           distances[currentEdge.getDestination().getId()] = newDistance;
           previous[currentEdge.getDestination().getId()] = current.vertexId;
           pq.insert(new QueueNode(currentEdge.getDestination().getId(), newDistance));
+          touchedVertices.add(currentEdge.getDestination().getId());
         }
         node = node.getNext();
       }
@@ -59,12 +74,28 @@ public class Dijkstra {
     }
   }
 
-  public void initializeDistancesAndPrevious(double[] distances, int[] previous) {
-    for (int i = 0; i < distances.length; i++) {
-      distances[i] = Double.MAX_VALUE; // Initialize all distances to infinity
-      previous[i] = -1;
+  private void resetTouchedVertices() {
+    // Iterate without destroying the list
+    List.Node<Integer> current = touchedVertices.getHead();
+    while (current != null) {
+      int vertexId = current.getData();
+      distances[vertexId] = Double.MAX_VALUE;
+      previous[vertexId] = -1;
+      current = current.getNext();
     }
+    // Now clear for next query
+    touchedVertices.clear();
   }
+
+  // public void initializeDistancesAndPrevious(double[] distances, int[]
+  // previous) {
+  // while (!touchedVertices.isEmpty()) {
+  // int vertexId = touchedVertices.getHead().getData();
+  // distances[vertexId] = Double.MAX_VALUE;
+  // previous[vertexId] = -1;
+  // touchedVertices.setHead(touchedVertices.getHead().getNext());
+  // }
+  // }
 
   public List<Integer> reconstructPath(int source, int destination) {
     List<Integer> path = new List<>();

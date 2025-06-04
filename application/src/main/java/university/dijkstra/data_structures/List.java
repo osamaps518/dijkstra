@@ -99,4 +99,10 @@ public class List<T> {
       this.previous = previous;
     }
   }
+
+  public void clear() {
+    head = null;
+    tail = null;
+    size = 0;
+  }
 }

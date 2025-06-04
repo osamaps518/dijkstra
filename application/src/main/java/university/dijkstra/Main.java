@@ -87,7 +87,7 @@ public class Main {
       int testCase = 1;
 
       // Create Dijkstra instance
-      Dijkstra dijkstra = new Dijkstra();
+      Dijkstra dijkstra = new Dijkstra(graph.length);
 
       // Track timing for performance analysis
       long totalTime = 0;
