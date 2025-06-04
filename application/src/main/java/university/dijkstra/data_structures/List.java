@@ -35,8 +35,10 @@ public class List<T> {
     if (head == null) {
       head = newNode;
       tail = newNode;
+
     } else {
       tail.setNext(newNode);
+      newNode.setPrevious(tail);
       tail = newNode;
     }
     size++;
@@ -66,6 +68,7 @@ public class List<T> {
   public static class Node<E> {
     E data;
     Node<E> next;
+    Node<E> previous;
 
     Node(E data) {
       this.data = data;
@@ -86,6 +89,14 @@ public class List<T> {
 
     public void setNext(Node<E> next) {
       this.next = next;
+    }
+
+    public Node<E> getPrevious() {
+      return previous;
+    }
+
+    public void setPrevious(Node<E> previous) {
+      this.previous = previous;
     }
   }
 }
