@@ -1,16 +1,16 @@
 package university.dijkstra.model;
 
 public class Edge {
-  private Vertix target;
+  private Vertex destination;
   private double weight;
 
-  public Edge(Vertix target, double weight) {
-    this.target = target;
+  public Edge(Vertex target, double weight) {
+    this.destination = target;
     this.weight = weight;
   }
 
-  public Vertix getTarget() {
-    return target;
+  public Vertex getDestination() {
+    return destination;
   }
 
   public double getWeight() {

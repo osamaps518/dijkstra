@@ -63,7 +63,7 @@ public class List<T> {
     }
   }
 
-  public class Node<E> {
+  public static class Node<E> {
     E data;
     Node<E> next;
 

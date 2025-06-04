@@ -4,15 +4,15 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-import university.dijkstra.model.Vertix;
+import university.dijkstra.model.Vertex;
 
 public class DataProccessor {
-  public static Vertix[] parseFile(String filename) throws IOException {
+  public static Vertex[] parseFile(String filename) throws IOException {
     try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
       int[] graphInfo = parseGraphInfo(reader);
       int numVertices = graphInfo[0];
       int numEdges = graphInfo[1];
-      Vertix[] graph = new Vertix[numVertices];
+      Vertex[] graph = new Vertex[numVertices];
       readVertices(graph, reader);
       connectVertices(graph, reader, numEdges);
       // At this point, the graph is fully constructed with vertices and edges
@@ -45,7 +45,7 @@ public class DataProccessor {
     }
   }
 
-  private static void readVertices(Vertix[] graph, BufferedReader reader) throws IOException {
+  private static void readVertices(Vertex[] graph, BufferedReader reader) throws IOException {
     for (int i = 0; i < graph.length; i++) {
       String line = reader.readLine();
       if (line == null) {
@@ -61,7 +61,7 @@ public class DataProccessor {
         int x = Integer.parseInt(parts[1]);
         int y = Integer.parseInt(parts[2]);
 
-        graph[vertix_id] = new Vertix(vertix_id, x, y);
+        graph[vertix_id] = new Vertex(vertix_id, x, y);
 
       } catch (NumberFormatException e) {
         throw new IOException("Invalid number format in vertix: " + line);
@@ -69,7 +69,7 @@ public class DataProccessor {
     }
   }
 
-  private static void connectVertices(Vertix[] vertices, BufferedReader reader, int numEdges) throws IOException {
+  private static void connectVertices(Vertex[] vertices, BufferedReader reader, int numEdges) throws IOException {
     // empty line
     String line = reader.readLine();
 
@@ -93,8 +93,8 @@ public class DataProccessor {
           throw new IOException("Invalid vertex ID in edge: " + line);
         }
 
-        Vertix v1 = vertices[vertixId1];
-        Vertix v2 = vertices[vertixId2];
+        Vertex v1 = vertices[vertixId1];
+        Vertex v2 = vertices[vertixId2];
 
         double weight = calculateEuclideanDistance(v1, v2);
         if (weight < 0) {
@@ -122,7 +122,7 @@ public class DataProccessor {
     }
   }
 
-  private static double calculateEuclideanDistance(Vertix v1, Vertix v2) {
+  private static double calculateEuclideanDistance(Vertex v1, Vertex v2) {
     return Math.sqrt(Math.pow(v1.getX() - v2.getX(), 2) + Math.pow(v1.getY() - v2.getY(), 2));
   }
 

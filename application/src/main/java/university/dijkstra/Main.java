@@ -3,13 +3,13 @@ package university.dijkstra;
 import university.dijkstra.data_structures.List;
 import university.dijkstra.io.DataProccessor;
 import university.dijkstra.model.Edge;
-import university.dijkstra.model.Vertix;
+import university.dijkstra.model.Vertex;
 
 public class Main {
   public static void main(String[] args) {
     String filename = "/home/osamaps/Downloads/University/HomeWorks/Semester2_Year3/Algorithm/Third_Project/USA.txt";
     try {
-      Vertix[] graph = DataProccessor.parseFile(filename);
+      Vertex[] graph = DataProccessor.parseFile(filename);
       System.out.println("Graph loaded successfully with " + graph.length + " vertices.");
 
       // Print first few vertices as a sample
@@ -24,7 +24,7 @@ public class Main {
     }
   }
 
-  public static void printVertex(Vertix vertex) {
+  public static void printVertex(Vertex vertex) {
     System.out.println("\nVertex ID: " + vertex.getId() +
         ", Coordinates: (" + vertex.getX() + ", " + vertex.getY() + ")");
 
@@ -51,9 +51,9 @@ public class Main {
     }
   }
 
-  public static void printGraph(Vertix[] graph) {
+  public static void printGraph(Vertex[] graph) {
     System.out.println("\nFull Graph:");
-    for (Vertix vertex : graph) {
+    for (Vertex vertex : graph) {
       printVertex(vertex);
     }
   }
