@@ -247,10 +247,11 @@ public class DijkstraVisualization extends Application {
     ListView<String> listView = new ListView<>();
     listView.setPrefHeight(150);
     listView.setPrefWidth(180);
-    listView.setVisible(false);
+    listView.setVisible(false); // starts hidden until the user types
     listView.setStyle("-fx-background-color: white; -fx-border-color: #ccc;");
 
     // Create filtered list using the shared vertex list
+    // This happens during UI creation, not while the user types
     if (allVerticesList == null) {
       allVerticesList = FXCollections.observableArrayList();
       for (Vertex v : graph) {
@@ -260,10 +261,12 @@ public class DijkstraVisualization extends Application {
       }
     }
 
+    // The listview shows this filtered list, not all items
     FilteredList<String> filteredList = new FilteredList<>(allVerticesList);
     listView.setItems(filteredList);
 
     // Store references for later use
+    // check whether to update source or destination
     if (isSource) {
       sourceSearchField = searchField;
       sourceListView = listView;
@@ -288,6 +291,7 @@ public class DijkstraVisualization extends Application {
     });
 
     // Handle selection
+    // if an item is selected, fill the field and hide the menu
     listView.setOnMouseClicked(event -> {
       String selected = listView.getSelectionModel().getSelectedItem();
       if (selected != null) {
@@ -297,6 +301,7 @@ public class DijkstraVisualization extends Application {
     });
 
     // Hide list when focus is lost
+    // Hides dropdown when clicking elsewhere
     searchField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
       if (!isNowFocused) {
         // Small delay to allow click on list
