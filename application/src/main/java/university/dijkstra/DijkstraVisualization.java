@@ -91,6 +91,7 @@ public class DijkstraVisualization extends Application {
       // Create controls
       HBox controls = createControls();
       root.setTop(controls);
+      populateDropdowns();
 
       infoPanel = createInfoPanel();
       root.setBottom(infoPanel);
@@ -174,6 +175,7 @@ public class DijkstraVisualization extends Application {
     Label zoomValue = new Label(String.format("%.1fx", currentZoom));
     Label edgeInfo = new Label(" (Edges hidden)");
     edgeInfo.setTextFill(Color.GRAY);
+    controls.getChildren().add(new Label("  |  "));
 
     zoomSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
       currentZoom = newVal.doubleValue();
@@ -190,8 +192,67 @@ public class DijkstraVisualization extends Application {
       }
     });
 
-    controls.getChildren().addAll(zoomLabel, zoomSlider, zoomValue, edgeInfo);
+    // Add dropdown controls
+    Label sourceDropLabel = new Label("Source: ");
+    sourceComboBox = new ComboBox<>();
+    sourceComboBox.setPrefWidth(150);
+    sourceComboBox.setPromptText("Select source");
+
+    Label destDropLabel = new Label("Destination: ");
+    destComboBox = new ComboBox<>();
+    destComboBox.setPrefWidth(150);
+    destComboBox.setPromptText("Select destination");
+
+    Button calculateButton = new Button("Calculate Path");
+    calculateButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
+    calculateButton.setOnAction(e -> handleDropdownSelection());
+
+    controls.getChildren().addAll(
+        zoomLabel, zoomSlider, zoomValue, edgeInfo,
+        sourceDropLabel, sourceComboBox,
+        destDropLabel, destComboBox,
+        calculateButton);
     return controls;
+  }
+
+  private void populateDropdowns() {
+    ObservableList<String> vertices = FXCollections.observableArrayList();
+
+    for (Vertex v : graph) {
+      if (v != null) {
+        vertices.add("Vertex " + v.getId() + " (" + v.getX() + ", " + v.getY() + ")");
+      }
+    }
+
+    sourceComboBox.setItems(vertices);
+    destComboBox.setItems(vertices);
+  }
+
+  private void handleDropdownSelection() {
+    String sourceSelection = sourceComboBox.getValue();
+    String destSelection = destComboBox.getValue();
+
+    if (sourceSelection == null || destSelection == null) {
+      // Show error message
+      return;
+    }
+
+    // Extract vertex ID from selection string
+    int sourceId = extractVertexId(sourceSelection);
+    int destId = extractVertexId(destSelection);
+
+    selectedSource = graph[sourceId];
+    selectedDestination = graph[destId];
+
+    calculatePath();
+    updateInfoPanel();
+    drawGraph();
+  }
+
+  private int extractVertexId(String selection) {
+    // Extract ID from "Vertex 12345 (x, y)" format
+    String[] parts = selection.split(" ");
+    return Integer.parseInt(parts[1]);
   }
 
   private HBox createInfoPanel() {
