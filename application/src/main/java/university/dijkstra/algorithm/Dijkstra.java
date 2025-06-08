@@ -87,16 +87,6 @@ public class Dijkstra {
     touchedVertices.clear();
   }
 
-  // public void initializeDistancesAndPrevious(double[] distances, int[]
-  // previous) {
-  // while (!touchedVertices.isEmpty()) {
-  // int vertexId = touchedVertices.getHead().getData();
-  // distances[vertexId] = Double.MAX_VALUE;
-  // previous[vertexId] = -1;
-  // touchedVertices.setHead(touchedVertices.getHead().getNext());
-  // }
-  // }
-
   public List<Integer> reconstructPath(int source, int destination) {
     List<Integer> path = new List<>();
     int current = destination;
@@ -115,8 +105,6 @@ public class Dijkstra {
     return null; // No path found
   }
 
-  // Use List from package university.dijkstra.data_structures.List;
-  // "This list doesn't have .get(), so instead use .getNext"
   public List<Integer> reversePath(List<Integer> path) {
     List<Integer> reversedPath = new List<>();
     List.Node<Integer> current = path.getTail();
