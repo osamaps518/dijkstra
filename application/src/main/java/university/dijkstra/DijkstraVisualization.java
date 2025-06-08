@@ -25,6 +25,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import javafx.scene.control.ComboBox;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import university.dijkstra.io.DataProccessor;
 import university.dijkstra.model.Vertex;
@@ -39,7 +42,6 @@ public class DijkstraVisualization extends Application {
   private static final double MAX_ZOOM = 10.0;
   private static final double EDGE_VISIBILITY_ZOOM = 3.0;
   private static final double VERTEX_LABEL_ZOOM = 6.0;
-  private static final int MAX_VISIBLE_EDGES = 5000;
 
   private Vertex[] graph;
   private double minX, maxX, minY, maxY;
@@ -48,7 +50,8 @@ public class DijkstraVisualization extends Application {
   private ScrollPane scrollPane;
   private HBox infoPanel; // Reference to the info panel
   Button showDetailsButton;
-  // private Image backgroundImage;
+  private ComboBox<String> sourceComboBox;
+  private ComboBox<String> destComboBox;
 
   // For vertex selection and pathfinding
   private Vertex selectedSource = null;
@@ -254,11 +257,12 @@ public class DijkstraVisualization extends Application {
 
     Text title = new Text("Path from Vertex " + selectedSource.getId() +
         " to Vertex " + selectedDestination.getId());
-    title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+    title.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
     TextArea pathDetails = new TextArea();
     pathDetails.setEditable(false);
-    pathDetails.setPrefRowCount(15);
+    pathDetails.setPrefRowCount(20);
+    pathDetails.setFont(Font.font("Arial", 20));
 
     StringBuilder details = new StringBuilder();
     details.append("Total Distance: ").append(String.format("%.2f", dijkstra.getDistance(selectedDestination.getId())))
@@ -296,10 +300,12 @@ public class DijkstraVisualization extends Application {
 
     Button closeButton = new Button("Close");
     closeButton.setOnAction(ev -> detailsStage.close());
+    closeButton.setPrefWidth(100);
+    closeButton.setStyle("-fx-font-size: 14px;");
 
     detailsBox.getChildren().addAll(title, pathDetails, closeButton);
 
-    Scene scene = new Scene(detailsBox, 500, 400);
+    Scene scene = new Scene(detailsBox, 800, 600);
     detailsStage.setScene(scene);
     detailsStage.show();
   }
