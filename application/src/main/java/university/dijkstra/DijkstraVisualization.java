@@ -6,9 +6,11 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -28,7 +30,7 @@ import java.util.Set;
 import javafx.scene.control.ComboBox;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-
+import javafx.collections.transformation.FilteredList;
 import university.dijkstra.io.DataProccessor;
 import university.dijkstra.model.Vertex;
 import university.dijkstra.model.Edge;
@@ -50,8 +52,13 @@ public class DijkstraVisualization extends Application {
   private ScrollPane scrollPane;
   private HBox infoPanel; // Reference to the info panel
   Button showDetailsButton;
-  private ComboBox<String> sourceComboBox;
-  private ComboBox<String> destComboBox;
+  private TextField sourceSearchField;
+  private ListView<String> sourceListView;
+  private FilteredList<String> filteredSourceList;
+  private TextField destSearchField;
+  private ListView<String> destListView;
+  private FilteredList<String> filteredDestList;
+  private ObservableList<String> allVerticesList;
 
   // For vertex selection and pathfinding
   private Vertex selectedSource = null;
@@ -91,7 +98,6 @@ public class DijkstraVisualization extends Application {
       // Create controls
       HBox controls = createControls();
       root.setTop(controls);
-      populateDropdowns();
 
       infoPanel = createInfoPanel();
       root.setBottom(infoPanel);
@@ -192,48 +198,29 @@ public class DijkstraVisualization extends Application {
       }
     });
 
-    // Add dropdown controls
-    Label sourceDropLabel = new Label("Source: ");
-    sourceComboBox = new ComboBox<>();
-    sourceComboBox.setPrefWidth(150);
-    sourceComboBox.setPromptText("Select source");
-
-    Label destDropLabel = new Label("Destination: ");
-    destComboBox = new ComboBox<>();
-    destComboBox.setPrefWidth(150);
-    destComboBox.setPromptText("Select destination");
+    // Create searchable dropdowns instead of ComboBoxes
+    VBox sourceBox = createSearchableDropdown("Source:", true);
+    VBox destBox = createSearchableDropdown("Destination:", false);
 
     Button calculateButton = new Button("Calculate Path");
     calculateButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white;");
-    calculateButton.setOnAction(e -> handleDropdownSelection());
+    calculateButton.setOnAction(e -> handleSearchFieldSelection());
 
     controls.getChildren().addAll(
         zoomLabel, zoomSlider, zoomValue, edgeInfo,
-        sourceDropLabel, sourceComboBox,
-        destDropLabel, destComboBox,
+        sourceBox, destBox,
         calculateButton);
     return controls;
   }
 
-  private void populateDropdowns() {
-    ObservableList<String> vertices = FXCollections.observableArrayList();
+  private void handleSearchFieldSelection() {
+    String sourceSelection = sourceSearchField.getText();
+    String destSelection = destSearchField.getText();
 
-    for (Vertex v : graph) {
-      if (v != null) {
-        vertices.add("Vertex " + v.getId() + " (" + v.getX() + ", " + v.getY() + ")");
-      }
-    }
-
-    sourceComboBox.setItems(vertices);
-    destComboBox.setItems(vertices);
-  }
-
-  private void handleDropdownSelection() {
-    String sourceSelection = sourceComboBox.getValue();
-    String destSelection = destComboBox.getValue();
-
-    if (sourceSelection == null || destSelection == null) {
-      // Show error message
+    if (sourceSelection.isEmpty() || destSelection.isEmpty() ||
+        !sourceSelection.startsWith("Vertex") || !destSelection.startsWith("Vertex")) {
+      // Show error or do nothing
+      System.out.println("Please select valid vertices from the search results");
       return;
     }
 
@@ -247,6 +234,82 @@ public class DijkstraVisualization extends Application {
     calculatePath();
     updateInfoPanel();
     drawGraph();
+  }
+
+  private VBox createSearchableDropdown(String label, boolean isSource) {
+    VBox container = new VBox(2);
+    container.setPrefWidth(200);
+
+    TextField searchField = new TextField();
+    searchField.setPromptText("Type to search...");
+    searchField.setPrefWidth(180);
+
+    ListView<String> listView = new ListView<>();
+    listView.setPrefHeight(150);
+    listView.setPrefWidth(180);
+    listView.setVisible(false);
+    listView.setStyle("-fx-background-color: white; -fx-border-color: #ccc;");
+
+    // Create filtered list using the shared vertex list
+    if (allVerticesList == null) {
+      allVerticesList = FXCollections.observableArrayList();
+      for (Vertex v : graph) {
+        if (v != null) {
+          allVerticesList.add("Vertex " + v.getId() + " (" + v.getX() + ", " + v.getY() + ")");
+        }
+      }
+    }
+
+    FilteredList<String> filteredList = new FilteredList<>(allVerticesList);
+    listView.setItems(filteredList);
+
+    // Store references for later use
+    if (isSource) {
+      sourceSearchField = searchField;
+      sourceListView = listView;
+      filteredSourceList = filteredList;
+    } else {
+      destSearchField = searchField;
+      destListView = listView;
+      filteredDestList = filteredList;
+    }
+
+    // Filter as user types
+    searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+      if (newVal.isEmpty()) {
+        listView.setVisible(false);
+      } else {
+        filteredList.setPredicate(item -> item.toLowerCase().contains(newVal.toLowerCase()));
+        listView.setVisible(true);
+        // Limit height based on results
+        int itemCount = Math.min(filteredList.size(), 8);
+        listView.setPrefHeight(itemCount * 24 + 2);
+      }
+    });
+
+    // Handle selection
+    listView.setOnMouseClicked(event -> {
+      String selected = listView.getSelectionModel().getSelectedItem();
+      if (selected != null) {
+        searchField.setText(selected);
+        listView.setVisible(false);
+      }
+    });
+
+    // Hide list when focus is lost
+    searchField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+      if (!isNowFocused) {
+        // Small delay to allow click on list
+        javafx.application.Platform.runLater(() -> {
+          if (!listView.isFocused()) {
+            listView.setVisible(false);
+          }
+        });
+      }
+    });
+
+    container.getChildren().addAll(new Label(label), searchField, listView);
+    return container;
   }
 
   private int extractVertexId(String selection) {
