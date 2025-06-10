@@ -11,7 +11,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -22,12 +21,8 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.geometry.Insets;
-import javafx.geometry.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import javafx.scene.control.ComboBox;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -419,16 +414,6 @@ public class DijkstraVisualization extends Application {
     // Adjust point size based on zoom
     double pointSize = Math.max(3, Math.min(10, 4 * currentZoom));
 
-    // Check if vertex is on the path for highlighting
-    Set<Integer> pathVertices = new HashSet<>();
-    if (currentPath != null) {
-      List.Node<Integer> node = currentPath.getHead();
-      while (node != null) {
-        pathVertices.add(node.getData());
-        node = node.getNext();
-      }
-    }
-
     for (Vertex v : graph) {
       if (v != null) {
         double x = mapX(v.getX());
@@ -445,7 +430,7 @@ public class DijkstraVisualization extends Application {
           gc.fillOval(x - pointSize, y - pointSize, pointSize * 2, pointSize * 2);
           gc.setFill(Color.DARKRED);
           gc.fillOval(x - pointSize / 2, y - pointSize / 2, pointSize, pointSize);
-        } else if (pathVertices.contains(v.getId())) {
+        } else if (currentPath != null && currentPath.contains(v.getId())) {
           // Highlight vertices on the path
           gc.setFill(Color.ORANGE);
           gc.fillOval(x - pointSize / 2, y - pointSize / 2, pointSize, pointSize);
