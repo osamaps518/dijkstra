@@ -48,12 +48,8 @@ public class DijkstraVisualization extends Application {
   private HBox infoPanel; // Reference to the info panel
   Button showDetailsButton;
   private TextField sourceSearchField;
-  private ListView<String> sourceListView;
-  private FilteredList<String> filteredSourceList;
   private TextField destSearchField;
-  private ListView<String> destListView;
-  private FilteredList<String> filteredDestList;
-  private ObservableList<String> allVerticesList;
+  private ObservableList<Integer> allVerticesList;
 
   // For vertex selection and pathfinding
   private Vertex selectedSource = null;
@@ -422,6 +418,12 @@ public class DijkstraVisualization extends Application {
         // Choose color based on selection and path
         if (v == selectedSource) {
           gc.setFill(Color.LIGHTGREEN);
+          // x y width height
+          // If we used fillOval(x, y, pointSize * 2, pointSize * 2),
+          // the circle would appear shifted - its top-left corner would
+          // be at the vertex position, making the circle appear down and
+          // to the right of where it should be, because fillOvall requires
+          // top left corner, not the vertex center itself
           gc.fillOval(x - pointSize, y - pointSize, pointSize * 2, pointSize * 2);
           gc.setFill(Color.DARKGREEN);
           gc.fillOval(x - pointSize / 2, y - pointSize / 2, pointSize, pointSize);
@@ -452,23 +454,33 @@ public class DijkstraVisualization extends Application {
     String sourceSelection = sourceSearchField.getText();
     String destSelection = destSearchField.getText();
 
-    if (sourceSelection.isEmpty() || destSelection.isEmpty() ||
-        !sourceSelection.startsWith("Vertex") || !destSelection.startsWith("Vertex")) {
-      // Show error or do nothing
+    if (sourceSelection.isEmpty() || destSelection.isEmpty()) {
       System.out.println("Please select valid vertices from the search results");
       return;
     }
 
-    // Extract vertex ID from selection string
-    int sourceId = extractVertexId(sourceSelection);
-    int destId = extractVertexId(destSelection);
+    try {
+      // directly parse the numbers
+      int sourceId = Integer.parseInt(sourceSelection);
+      int destId = Integer.parseInt(destSelection);
 
-    selectedSource = graph[sourceId];
-    selectedDestination = graph[destId];
+      // Validate the IDs are within bounds
+      if (sourceId < 0 || sourceId >= graph.length ||
+          destId < 0 || destId >= graph.length ||
+          graph[sourceId] == null || graph[destId] == null) {
+        System.out.println("Invalid vertex ID");
+        return;
+      }
 
-    calculatePath();
-    updateInfoPanel();
-    drawGraph();
+      selectedSource = graph[sourceId];
+      selectedDestination = graph[destId];
+      calculatePath();
+      updateInfoPanel();
+      drawGraph();
+
+    } catch (NumberFormatException e) {
+      System.out.println("Please enter valid vertex IDs");
+    }
   }
 
   private VBox createSearchableDropdown(String label, boolean isSource) {
@@ -479,10 +491,11 @@ public class DijkstraVisualization extends Application {
     searchField.setPromptText("Type to search...");
     searchField.setPrefWidth(180);
 
-    ListView<String> listView = new ListView<>();
+    // starts hidden until the user types
+    ListView<Integer> listView = new ListView<>();
     listView.setPrefHeight(150);
     listView.setPrefWidth(180);
-    listView.setVisible(false); // starts hidden until the user types
+    listView.setVisible(false); // hide the list initially
     listView.setStyle("-fx-background-color: white; -fx-border-color: #ccc;");
 
     // Create filtered list using the shared vertex list
@@ -491,25 +504,21 @@ public class DijkstraVisualization extends Application {
       allVerticesList = FXCollections.observableArrayList();
       for (Vertex v : graph) {
         if (v != null) {
-          allVerticesList.add("Vertex " + v.getId() + " (" + v.getX() + ", " + v.getY() + ")");
+          allVerticesList.add(v.getId());
         }
       }
     }
 
     // The listview shows this filtered list, not all items
-    FilteredList<String> filteredList = new FilteredList<>(allVerticesList);
+    FilteredList<Integer> filteredList = new FilteredList<>(allVerticesList);
     listView.setItems(filteredList);
 
     // Store references for later use
     // check whether to update source or destination
     if (isSource) {
       sourceSearchField = searchField;
-      sourceListView = listView;
-      filteredSourceList = filteredList;
     } else {
       destSearchField = searchField;
-      destListView = listView;
-      filteredDestList = filteredList;
     }
 
     // Filter as user types
@@ -517,7 +526,10 @@ public class DijkstraVisualization extends Application {
       if (newVal.isEmpty()) {
         listView.setVisible(false);
       } else {
-        filteredList.setPredicate(item -> item.toLowerCase().contains(newVal.toLowerCase()));
+        filteredList.setPredicate(item -> {
+          // Convert integer to string for comparison
+          return String.valueOf(item).contains(newVal);
+        });
         listView.setVisible(true);
         // Limit height based on results
         int itemCount = Math.min(filteredList.size(), 8);
@@ -528,9 +540,9 @@ public class DijkstraVisualization extends Application {
     // Handle selection
     // if an item is selected, fill the field and hide the menu
     listView.setOnMouseClicked(event -> {
-      String selected = listView.getSelectionModel().getSelectedItem();
+      Integer selected = listView.getSelectionModel().getSelectedItem();
       if (selected != null) {
-        searchField.setText(selected);
+        searchField.setText(String.valueOf(selected)); // Convert to String
         listView.setVisible(false);
       }
     });
@@ -550,12 +562,6 @@ public class DijkstraVisualization extends Application {
 
     container.getChildren().addAll(new Label(label), searchField, listView);
     return container;
-  }
-
-  private int extractVertexId(String selection) {
-    // Extract ID from "Vertex 12345 (x, y)" format
-    String[] parts = selection.split(" ");
-    return Integer.parseInt(parts[1]);
   }
 
   private void showPathDetailsScene() {
