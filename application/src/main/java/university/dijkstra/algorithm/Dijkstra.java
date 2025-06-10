@@ -11,6 +11,16 @@ public class Dijkstra {
   private double[] distances; // To store the shortest distances from the source
   private List<Integer> touchedVertices;
 
+  public Dijkstra(int numVertices) {
+    distances = new double[numVertices];
+    previous = new int[numVertices];
+    touchedVertices = new List<>();
+
+    // Initial setup - only done once
+    Arrays.fill(distances, Double.MAX_VALUE);
+    Arrays.fill(previous, -1);
+  }
+
   // Simple node class for the priority queue
   static class QueueNode implements Comparable<QueueNode> {
     int vertexId;
@@ -25,16 +35,6 @@ public class Dijkstra {
     public int compareTo(QueueNode other) {
       return Double.compare(this.distance, other.distance);
     }
-  }
-
-  public Dijkstra(int numVertices) {
-    distances = new double[numVertices];
-    previous = new int[numVertices];
-    touchedVertices = new List<>();
-
-    // Initial setup - only done once
-    Arrays.fill(distances, Double.MAX_VALUE);
-    Arrays.fill(previous, -1);
   }
 
   public void findShortestPath(Vertex[] graph, Vertex source, Vertex destination) {

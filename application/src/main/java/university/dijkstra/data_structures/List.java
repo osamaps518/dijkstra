@@ -30,6 +30,17 @@ public class List<T> {
     return size;
   }
 
+  public boolean contains(T data) {
+    Node<T> current = head;
+    while (current != null) {
+      if (current.data.equals(data)) {
+        return true;
+      }
+      current = current.next;
+    }
+    return false;
+  }
+
   public void add(T data) {
     Node<T> newNode = new Node<>(data);
     if (head == null) {
