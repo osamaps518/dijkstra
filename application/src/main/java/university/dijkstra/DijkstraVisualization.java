@@ -37,7 +37,6 @@ public class DijkstraVisualization extends Application {
   private static final int INITIAL_HEIGHT = 800;
   private static final double MIN_ZOOM = 0.1;
   private static final double MAX_ZOOM = 10.0;
-  private static final double EDGE_VISIBILITY_ZOOM = 3.0;
   private static final double VERTEX_LABEL_ZOOM = 6.0;
 
   private Vertex[] graph;
@@ -103,27 +102,6 @@ public class DijkstraVisualization extends Application {
 
       // Initial draw
       drawGraph();
-
-      // Add mouse wheel zoom, doesn't work for laptop
-      scrollPane.setOnScroll(event -> {
-        if (event.isControlDown()) {
-          double zoomFactor = 1.05;
-          double deltaY = event.getDeltaY();
-
-          if (deltaY < 0) {
-            currentZoom /= zoomFactor;
-          } else {
-            currentZoom *= zoomFactor;
-          }
-
-          currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom));
-          updateCanvasSize();
-          drawGraph();
-
-          event.consume();
-        }
-      });
-
       Scene scene = new Scene(root, INITIAL_WIDTH, INITIAL_HEIGHT);
       primaryStage.setScene(scene);
       primaryStage.show();
@@ -602,9 +580,14 @@ public class DijkstraVisualization extends Application {
         // Find the edge weight between prev and current
         Vertex prev = graph[prevId];
         double edgeWeight = findEdgeWeight(prev, current);
-        if (edgeWeight > 0) {
+
+        if (edgeWeight >= 0) { // Include zero-weight edges
           details.append(String.format(" - Distance from previous: %.2f", edgeWeight));
+        } else {
+          // This would only happen if there's a real problem
+          details.append(" - Distance from previous: ERROR (edge not found)");
         }
+        details.append(String.format(" - Distance from previous: %.2f", edgeWeight));
       }
       details.append("\n");
 
