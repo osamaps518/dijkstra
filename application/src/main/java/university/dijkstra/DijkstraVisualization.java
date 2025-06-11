@@ -405,11 +405,13 @@ public class DijkstraVisualization extends Application {
           gc.fillOval(x - pointSize, y - pointSize, pointSize * 2, pointSize * 2);
           gc.setFill(Color.DARKGREEN);
           gc.fillOval(x - pointSize / 2, y - pointSize / 2, pointSize, pointSize);
+          sourceSearchField.setText(String.valueOf(v.getId()));
         } else if (v == selectedDestination) {
           gc.setFill(Color.PINK);
           gc.fillOval(x - pointSize, y - pointSize, pointSize * 2, pointSize * 2);
           gc.setFill(Color.DARKRED);
           gc.fillOval(x - pointSize / 2, y - pointSize / 2, pointSize, pointSize);
+          destSearchField.setText(String.valueOf(v.getId()));
         } else if (currentPath != null && currentPath.contains(v.getId())) {
           // Highlight vertices on the path
           gc.setFill(Color.ORANGE);

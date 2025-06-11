@@ -86,7 +86,7 @@ public class MinHeap<T extends Comparable<T>> {
    * @return the minimum element
    * @throws IllegalStateException if the heap is empty
    */
-  public T extractMin() {
+  public T dequeue() {
     if (size == 0) {
       throw new IllegalStateException("Heap is empty");
     }

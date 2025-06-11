@@ -9,16 +9,24 @@ import university.dijkstra.model.*;
 public class Dijkstra {
   private int[] previous; // To reconstruct the path
   private double[] distances; // To store the shortest distances from the source
-  private List<Integer> touchedVertices;
+  private List<Integer> visitedVertices;
+  private boolean[] known;
 
   public Dijkstra(int numVertices) {
     distances = new double[numVertices];
     previous = new int[numVertices];
-    touchedVertices = new List<>();
+    visitedVertices = new List<>();
+    known = new boolean[numVertices];
 
-    // Initial setup - only done once
-    Arrays.fill(distances, Double.MAX_VALUE);
-    Arrays.fill(previous, -1);
+    initializeArrays();
+  }
+
+  public void initializeArrays() {
+    for (int i = 0; i < distances.length; i++) {
+      distances[i] = Double.MAX_VALUE;
+      previous[i] = -1;
+      known[i] = false;
+    }
   }
 
   // Simple node class for the priority queue
@@ -41,18 +49,22 @@ public class Dijkstra {
     MinHeap<QueueNode> pq = new MinHeap<QueueNode>();
 
     // Reset ONLY touched vertices from previous query
-    resetTouchedVertices();
+    resetVisitedVertices();
 
     distances[source.getId()] = 0;
-    touchedVertices.add(source.getId());
+    visitedVertices.add(source.getId());
     pq.insert(new QueueNode(source.getId(), 0));
 
     while (!pq.isEmpty()) {
-      QueueNode current = pq.extractMin();
-      List<Edge> edges = graph[current.vertexId].getEdges();
-      if (current.distance > distances[current.vertexId]) {
-        continue; // Skip if we already found a better path
+      QueueNode current = pq.dequeue();
+      // Skip if already visited
+      if (known[current.vertexId]) {
+        continue;
       }
+      known[current.vertexId] = true;
+
+      List<Edge> edges = graph[current.vertexId].getEdges();
+
       if (current.vertexId == destination.getId()) {
         break; // early termination
       }
@@ -60,31 +72,35 @@ public class Dijkstra {
       List.Node<Edge> node = edges.getHead();
       while (node != null) {
         Edge currentEdge = node.getData();
-        double newDistance = distances[current.vertexId] + currentEdge.getWeight();
 
-        if (newDistance < distances[currentEdge.getDestination().getId()]) {
-          distances[currentEdge.getDestination().getId()] = newDistance;
-          previous[currentEdge.getDestination().getId()] = current.vertexId;
-          pq.insert(new QueueNode(currentEdge.getDestination().getId(), newDistance));
-          touchedVertices.add(currentEdge.getDestination().getId());
+        if (!known[currentEdge.getDestination().getId()]) {
+          double newDistance = distances[current.vertexId] + currentEdge.getWeight();
+          if (newDistance < distances[currentEdge.getDestination().getId()]) {
+            distances[currentEdge.getDestination().getId()] = newDistance;
+            previous[currentEdge.getDestination().getId()] = current.vertexId;
+            pq.insert(new QueueNode(currentEdge.getDestination().getId(), newDistance));
+            visitedVertices.add(currentEdge.getDestination().getId());
+          }
         }
+
         node = node.getNext();
       }
 
     }
   }
 
-  private void resetTouchedVertices() {
+  private void resetVisitedVertices() {
     // Iterate without destroying the list
-    List.Node<Integer> current = touchedVertices.getHead();
+    List.Node<Integer> current = visitedVertices.getHead();
     while (current != null) {
       int vertexId = current.getData();
       distances[vertexId] = Double.MAX_VALUE;
       previous[vertexId] = -1;
       current = current.getNext();
+      known[vertexId] = false;
     }
     // Now clear for next query
-    touchedVertices.clear();
+    visitedVertices.clear();
   }
 
   public List<Integer> reconstructPath(int source, int destination) {
